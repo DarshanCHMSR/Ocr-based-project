@@ -101,10 +101,6 @@
         <button type="submit" class="btn btn-custom btn-lg" id="submitBtn" disabled>
             <i class="fas fa-magic"></i> Extract Text
         </button>
-        <br><br>
-        <button type="button" class="btn btn-outline-info btn-sm" onclick="debugForm()">
-            <i class="fas fa-bug"></i> Debug Form
-        </button>
     </div>
     
     <!-- Progress Bar -->
@@ -146,28 +142,7 @@
     </div>
 </div>
 
-<!-- Installation Guide -->
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="feature-card">
-            <h6><i class="fas fa-terminal"></i> Installation Guide</h6>
-            <p>If some features are unavailable, install the required dependencies:</p>
-            <div class="row">
-                <div class="col-md-6">
-                    <strong>PDF Processing:</strong>
-                    <code class="d-block bg-light p-2 rounded mt-1">pip install PyPDF2 pdfplumber pdf2image</code>
-                </div>
-                <div class="col-md-6">
-                    <strong>OCR Processing:</strong>
-                    <code class="d-block bg-light p-2 rounded mt-1">pip install pytesseract pillow</code>
-                </div>
-            </div>
-            <p class="mt-2 mb-0">
-                <strong>Note:</strong> You also need to install Tesseract OCR engine and Kannada language pack separately.
-            </p>
-        </div>
-    </div>
-</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -374,34 +349,6 @@ function clearFile() {
     console.log('File selection cleared and reset');
 }
 
-function debugForm() {
-    console.log('=== FORM DEBUG ===');
-    const form = document.getElementById('uploadForm');
-    const fileInput = document.getElementById('fileInput');
 
-    console.log('Form element:', form);
-    console.log('Form action:', form.action);
-    console.log('Form method:', form.method);
-    console.log('Form enctype:', form.enctype);
-
-    console.log('File input element:', fileInput);
-    console.log('File input name:', fileInput ? fileInput.name : 'N/A');
-    console.log('File input files:', fileInput ? fileInput.files : 'N/A');
-    console.log('File input parent:', fileInput ? fileInput.parentElement : 'N/A');
-
-    // Check if file input is inside the form
-    console.log('File input is inside form:', form.contains(fileInput));
-
-    // Create FormData and check contents
-    const formData = new FormData(form);
-    console.log('FormData contents:');
-    for (let [key, value] of formData.entries()) {
-        console.log(`  ${key}:`, value);
-    }
-
-    console.log('=== END DEBUG ===');
-
-    alert('Debug info logged to console. Press F12 to view.');
-}
 </script>
 {% endblock %}
