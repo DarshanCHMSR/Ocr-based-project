@@ -23,11 +23,16 @@ except ImportError as e:
 try:
     import pytesseract
     from PIL import Image, ImageEnhance
+    import cv2
+    import numpy as np
     OCR_AVAILABLE = True
+    OPENCV_AVAILABLE = True
     print("✅ OCR processing available")
+    print("✅ OpenCV available")
 except ImportError as e:
     OCR_AVAILABLE = False
-    print(f"❌ OCR processing not available: {e}")
+    OPENCV_AVAILABLE = False
+    print(f"❌ OCR/OpenCV processing not available: {e}")
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this'  # Change this in production
@@ -48,45 +53,210 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def extract_text_from_image(image_path, preprocess=True):
-    """Extract text from image using OCR."""
+def preprocess_image_opencv(image_path, output_dir=None):
+    """
+    Advanced image preprocessing using OpenCV for better OCR results.
+
+    Args:
+        image_path (str): Path to input image
+        output_dir (str): Directory to save processed images (optional)
+
+    Returns:
+        list: List of processed ROI image paths
+    """
+    if not OPENCV_AVAILABLE:
+        return []
+
+    try:
+        print(f"🔧 Starting OpenCV preprocessing for: {image_path}")
+
+        # Read image
+        image = cv2.imread(image_path)
+        if image is None:
+            print(f"❌ Could not read image: {image_path}")
+            return []
+
+        print(f"📊 Original image shape: {image.shape}")
+
+        # Convert to grayscale
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        print("✅ Converted to grayscale")
+
+        # Apply Gaussian blur
+        blur = cv2.GaussianBlur(gray, (7, 7), 0)
+        print("✅ Applied Gaussian blur")
+
+        # Apply threshold with OTSU
+        thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+        print("✅ Applied OTSU thresholding")
+
+        # Create morphological kernel
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 13))
+
+        # Apply dilation
+        dilate = cv2.dilate(thresh, kernel, iterations=1)
+        print("✅ Applied morphological operations")
+
+        # Find contours
+        cnts = cv2.findContours(dilate, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+
+        # Sort contours by x-coordinate (left to right)
+        cnts = sorted(cnts, key=lambda x: cv2.boundingRect(x)[0])
+        print(f"🔍 Found {len(cnts)} contours")
+
+        # Create output directory if specified
+        if output_dir:
+            os.makedirs(output_dir, exist_ok=True)
+        else:
+            output_dir = os.path.join(os.path.dirname(image_path), 'temp')
+            os.makedirs(output_dir, exist_ok=True)
+
+        roi_paths = []
+        valid_contours = 0
+
+        # Process each contour
+        for i, c in enumerate(cnts):
+            x, y, w, h = cv2.boundingRect(c)
+
+            # Filter contours based on size (height > 200 and width > 20)
+            if h > 200 and w > 20:
+                valid_contours += 1
+
+                # Extract ROI (Region of Interest)
+                roi = image[y:y+h, x:x+w]  # Fixed: was x:x+h, should be x:x+w
+
+                # Save ROI
+                roi_filename = f"roi_{i}_{valid_contours}.png"
+                roi_path = os.path.join(output_dir, roi_filename)
+                cv2.imwrite(roi_path, roi)
+                roi_paths.append(roi_path)
+
+                # Draw bounding rectangle on original image
+                cv2.rectangle(image, (x, y), (x+w, y+h), (36, 255, 12), 2)
+
+                print(f"✅ Extracted ROI {valid_contours}: {w}x{h} at ({x},{y})")
+
+        # Save image with bounding boxes
+        bbox_filename = f"bbox_{os.path.basename(image_path)}"
+        bbox_path = os.path.join(output_dir, bbox_filename)
+        cv2.imwrite(bbox_path, image)
+
+        print(f"🎯 Found {valid_contours} valid text regions")
+        print(f"💾 Saved bounding box image: {bbox_path}")
+        print(f"💾 Saved {len(roi_paths)} ROI images")
+
+        return roi_paths
+
+    except Exception as e:
+        print(f"❌ Error in OpenCV preprocessing: {str(e)}")
+        return []
+
+
+def extract_text_from_image(image_path, preprocess=True, use_opencv=True):
+    """Extract text from image using OCR with optional OpenCV preprocessing."""
     if not OCR_AVAILABLE:
         return "OCR libraries not available. Please install pytesseract and pillow."
 
     try:
-        print(f"Opening image: {image_path}")  # Debug log
-        image = Image.open(image_path)
-        print(f"Image size: {image.size}, mode: {image.mode}")  # Debug log
-
-        if preprocess:
-            # Convert to grayscale and enhance contrast
-            image = image.convert('L')
-            enhancer = ImageEnhance.Contrast(image)
-            image = enhancer.enhance(2.0)
-            print("Image preprocessed")  # Debug log
+        print(f"📂 Opening image: {image_path}")
 
         # Check if Kannada language is available, fallback to English
         try:
             available_langs = pytesseract.get_languages()
             lang = 'kan' if 'kan' in available_langs else 'eng'
-            print(f"Using OCR language: {lang}")  # Debug log
+            print(f"🌐 Using OCR language: {lang}")
         except:
             lang = 'eng'
-            print("Using default language: eng")  # Debug log
+            print("🌐 Using default language: eng")
 
-        # Extract text using OCR
-        custom_config = r'--oem 3 --psm 6'
-        extracted_text = pytesseract.image_to_string(
-            image,
-            lang=lang,
-            config=custom_config
-        )
+        extracted_text = ""
 
-        print(f"OCR completed, text length: {len(extracted_text)}")  # Debug log
+        # Use OpenCV preprocessing if available and requested
+        if use_opencv and OPENCV_AVAILABLE and preprocess:
+            print("🔧 Using OpenCV preprocessing...")
+
+            # Get ROI images using OpenCV preprocessing
+            roi_paths = preprocess_image_opencv(image_path)
+
+            if roi_paths:
+                print(f"📝 Processing {len(roi_paths)} ROI regions...")
+
+                # Extract text from each ROI
+                for i, roi_path in enumerate(roi_paths):
+                    print(f"🔍 Processing ROI {i+1}/{len(roi_paths)}: {roi_path}")
+
+                    try:
+                        # Load ROI image with PIL for OCR
+                        roi_image = Image.open(roi_path)
+
+                        # OCR configuration for better results
+                        custom_config = r'--oem 3 --psm 6'
+                        roi_text = pytesseract.image_to_string(
+                            roi_image,
+                            lang=lang,
+                            config=custom_config
+                        )
+
+                        if roi_text.strip():
+                            extracted_text += f"\n--- Region {i+1} ---\n"
+                            extracted_text += roi_text.strip() + "\n"
+                            print(f"✅ Extracted {len(roi_text)} characters from ROI {i+1}")
+                        else:
+                            print(f"⚠️ No text found in ROI {i+1}")
+
+                    except Exception as e:
+                        print(f"❌ Error processing ROI {i+1}: {str(e)}")
+                        continue
+
+                # Clean up ROI files
+                for roi_path in roi_paths:
+                    try:
+                        os.remove(roi_path)
+                    except:
+                        pass
+
+            else:
+                print("⚠️ No valid ROI regions found, falling back to standard OCR")
+                use_opencv = False
+
+        # Fallback to standard PIL preprocessing if OpenCV not used or failed
+        if not use_opencv or not OPENCV_AVAILABLE or not extracted_text.strip():
+            print("🔧 Using standard PIL preprocessing...")
+
+            image = Image.open(image_path)
+            print(f"📊 Image size: {image.size}, mode: {image.mode}")
+
+            if preprocess:
+                # Convert to grayscale and enhance contrast
+                image = image.convert('L')
+                enhancer = ImageEnhance.Contrast(image)
+                image = enhancer.enhance(2.0)
+                print("✅ Applied PIL preprocessing")
+
+            # Extract text using OCR
+            custom_config = r'--oem 3 --psm 6'
+            standard_text = pytesseract.image_to_string(
+                image,
+                lang=lang,
+                config=custom_config
+            )
+
+            # Use standard text if OpenCV didn't produce results
+            if not extracted_text.strip():
+                extracted_text = standard_text
+            else:
+                # Append standard OCR results
+                if standard_text.strip():
+                    extracted_text += f"\n--- Full Image OCR ---\n"
+                    extracted_text += standard_text.strip()
+
+        print(f"🎯 OCR completed, total text length: {len(extracted_text)}")
         return extracted_text
+
     except Exception as e:
         error_msg = f"Error processing image: {str(e)}"
-        print(error_msg)  # Debug log
+        print(f"❌ {error_msg}")
         return error_msg
 
 
@@ -195,8 +365,9 @@ def upload_file():
                     return redirect(url_for('index'))
 
                 preprocess = request.form.get('preprocess', 'true') == 'true'
-                print(f"Using OCR with preprocessing: {preprocess}")  # Debug log
-                extracted_text = extract_text_from_image(filepath, preprocess=preprocess)
+                use_opencv = request.form.get('use_opencv', 'true') == 'true'
+                print(f"Using OCR with preprocessing: {preprocess}, OpenCV: {use_opencv}")  # Debug log
+                extracted_text = extract_text_from_image(filepath, preprocess=preprocess, use_opencv=use_opencv)
 
             print(f"Extracted text length: {len(extracted_text) if extracted_text else 0}")  # Debug log
 
@@ -281,7 +452,8 @@ def check_dependencies():
     """API endpoint to check available dependencies."""
     deps = {
         'pdf_available': PDF_AVAILABLE,
-        'ocr_available': OCR_AVAILABLE
+        'ocr_available': OCR_AVAILABLE,
+        'opencv_available': OPENCV_AVAILABLE
     }
     
     if PDF_AVAILABLE:
@@ -312,10 +484,11 @@ def too_large(e):
 
 if __name__ == '__main__':
     print("🚀 Starting PDF/OCR Text Extraction Web App")
-    print("=" * 40)
+    print("=" * 50)
     print(f"PDF Support: {'✅' if PDF_AVAILABLE else '❌'}")
     print(f"OCR Support: {'✅' if OCR_AVAILABLE else '❌'}")
-    print("=" * 40)
+    print(f"OpenCV Support: {'✅' if OPENCV_AVAILABLE else '❌'}")
+    print("=" * 50)
     print("📝 Install missing dependencies:")
     if not PDF_AVAILABLE:
         print("   pip install PyPDF2 pdfplumber pdf2image")

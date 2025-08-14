@@ -18,6 +18,12 @@
             <span class="status-badge {% if ocr_available %}status-available{% else %}status-unavailable{% endif %}">
                 {% if ocr_available %}✅ Available{% else %}❌ Unavailable{% endif %}
             </span>
+            <div class="mt-2">
+                <small class="text-muted">
+                    <i class="fas fa-eye"></i> Standard OCR: {% if ocr_available %}✅{% else %}❌{% endif %}<br>
+                    <i class="fas fa-shapes"></i> OpenCV Processing: <span id="opencv-status">Checking...</span>
+                </small>
+            </div>
             <p class="mt-2 mb-0">Extract text from images with Kannada language support</p>
         </div>
     </div>
@@ -70,13 +76,22 @@
         <div class="col-md-6">
             <div class="feature-card">
                 <h6><i class="fas fa-image"></i> Image Options</h6>
-                <div class="form-check">
+                <div class="form-check mb-2">
                     <input class="form-check-input" type="checkbox" id="preprocess" name="preprocess" value="true" checked>
                     <label class="form-check-label" for="preprocess">
                         Enable image preprocessing
                     </label>
                 </div>
-                <small class="text-muted">Improves OCR accuracy by enhancing contrast and converting to grayscale</small>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="use_opencv" name="use_opencv" value="true" checked>
+                    <label class="form-check-label" for="use_opencv">
+                        Use OpenCV advanced processing
+                    </label>
+                </div>
+                <small class="text-muted">
+                    <strong>Standard:</strong> Grayscale + contrast enhancement<br>
+                    <strong>OpenCV:</strong> Contour detection + region-based OCR
+                </small>
             </div>
         </div>
     </div>
@@ -309,8 +324,21 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             console.log('Dependencies:', data);
+
+            // Update OpenCV status
+            const opencvStatus = document.getElementById('opencv-status');
+            if (data.opencv_available) {
+                opencvStatus.innerHTML = '✅';
+                opencvStatus.style.color = '#28a745';
+            } else {
+                opencvStatus.innerHTML = '❌';
+                opencvStatus.style.color = '#dc3545';
+            }
         })
-        .catch(error => console.error('Error checking dependencies:', error));
+        .catch(error => {
+            console.error('Error checking dependencies:', error);
+            document.getElementById('opencv-status').innerHTML = '❌';
+        });
 });
 
 function clearFile() {
