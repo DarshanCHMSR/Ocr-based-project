@@ -25,6 +25,9 @@
 
 <!-- Upload Form -->
 <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+    <!-- Hidden file input - keep this outside the upload area so it doesn't get replaced -->
+    <input type="file" id="fileInput" name="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.bmp,.tiff" style="display: none;" required>
+
     <div class="upload-area" id="uploadArea">
         <div class="upload-icon">
             <i class="fas fa-cloud-upload-alt"></i>
@@ -32,9 +35,7 @@
         <h4>Drop files here or click to browse</h4>
         <p class="text-muted">Supported formats: PDF, PNG, JPG, JPEG, GIF, BMP, TIFF</p>
         <p class="text-muted">Maximum file size: 16MB</p>
-        
-        <input type="file" id="fileInput" name="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.bmp,.tiff" style="display: none;" required>
-        
+
         <div class="mt-3">
             <button type="button" class="btn btn-custom" onclick="document.getElementById('fileInput').click()">
                 <i class="fas fa-folder-open"></i> Choose File
@@ -84,6 +85,10 @@
     <div class="text-center mt-4">
         <button type="submit" class="btn btn-custom btn-lg" id="submitBtn" disabled>
             <i class="fas fa-magic"></i> Extract Text
+        </button>
+        <br><br>
+        <button type="button" class="btn btn-outline-info btn-sm" onclick="debugForm()">
+            <i class="fas fa-bug"></i> Debug Form
         </button>
     </div>
     
@@ -238,18 +243,37 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submission with progress
     uploadForm.addEventListener('submit', function(e) {
         console.log('Form submit triggered');
-        console.log('File input files:', fileInput.files);
-        console.log('File input files length:', fileInput.files.length);
+        console.log('Form element:', uploadForm);
+        console.log('Form action:', uploadForm.action);
+        console.log('Form method:', uploadForm.method);
+        console.log('Form enctype:', uploadForm.enctype);
 
-        if (!fileInput.files || fileInput.files.length === 0) {
+        // Check file input
+        const currentFileInput = document.getElementById('fileInput');
+        console.log('Current file input element:', currentFileInput);
+        console.log('File input name attribute:', currentFileInput ? currentFileInput.name : 'N/A');
+        console.log('File input files:', currentFileInput ? currentFileInput.files : 'N/A');
+        console.log('File input files length:', currentFileInput ? currentFileInput.files.length : 'N/A');
+
+        // Check if file input is part of the form
+        const formData = new FormData(uploadForm);
+        console.log('FormData entries:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`  ${key}:`, value);
+        }
+
+        if (!currentFileInput || !currentFileInput.files || currentFileInput.files.length === 0) {
             e.preventDefault();
             console.log('No file selected, preventing form submission');
             alert('Please select a file first!');
             return false;
         }
 
-        const selectedFile = fileInput.files[0];
+        const selectedFile = currentFileInput.files[0];
         console.log('Selected file:', selectedFile);
+        console.log('Selected file name:', selectedFile.name);
+        console.log('Selected file size:', selectedFile.size);
+        console.log('Selected file type:', selectedFile.type);
 
         if (!selectedFile || !selectedFile.name) {
             e.preventDefault();
@@ -303,7 +327,7 @@ function clearFile() {
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-magic"></i> Extract Text';
 
-    // Reset upload area
+    // Reset upload area (without recreating file input)
     uploadArea.innerHTML = `
         <div class="upload-icon">
             <i class="fas fa-cloud-upload-alt"></i>
@@ -312,8 +336,6 @@ function clearFile() {
         <p class="text-muted">Supported formats: PDF, PNG, JPG, JPEG, GIF, BMP, TIFF</p>
         <p class="text-muted">Maximum file size: 16MB</p>
 
-        <input type="file" id="fileInput" name="file" accept=".pdf,.png,.jpg,.jpeg,.gif,.bmp,.tiff" style="display: none;" required>
-
         <div class="mt-3">
             <button type="button" class="btn btn-custom" onclick="document.getElementById('fileInput').click()">
                 <i class="fas fa-folder-open"></i> Choose File
@@ -321,11 +343,37 @@ function clearFile() {
         </div>
     `;
 
-    // Re-attach event listeners
-    const newFileInput = document.getElementById('fileInput');
-    newFileInput.addEventListener('change', handleFileSelect);
-
     console.log('File selection cleared and reset');
+}
+
+function debugForm() {
+    console.log('=== FORM DEBUG ===');
+    const form = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('fileInput');
+
+    console.log('Form element:', form);
+    console.log('Form action:', form.action);
+    console.log('Form method:', form.method);
+    console.log('Form enctype:', form.enctype);
+
+    console.log('File input element:', fileInput);
+    console.log('File input name:', fileInput ? fileInput.name : 'N/A');
+    console.log('File input files:', fileInput ? fileInput.files : 'N/A');
+    console.log('File input parent:', fileInput ? fileInput.parentElement : 'N/A');
+
+    // Check if file input is inside the form
+    console.log('File input is inside form:', form.contains(fileInput));
+
+    // Create FormData and check contents
+    const formData = new FormData(form);
+    console.log('FormData contents:');
+    for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}:`, value);
+    }
+
+    console.log('=== END DEBUG ===');
+
+    alert('Debug info logged to console. Press F12 to view.');
 }
 </script>
 {% endblock %}
