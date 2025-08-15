@@ -143,7 +143,7 @@
 {% block extra_css %}
 <style>
     .ql-editor {
-        font-family: 'Noto Sans Kannada',;
+        font-family: 'Noto Sans Kannada', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         font-size: 16px;
         line-height: 1.6;
     }
@@ -205,8 +205,13 @@ document.addEventListener('DOMContentLoaded', function() {
         placeholder: 'ತೆಗಿದ ಪಠ್ಯವನ್ನು ಸಂಪಾದನೆ ಪ್ರಾರಂಭಿಸಿ...'
     });
     
-    // Update word count on text change
-    quill.on('text-change', function() {
+    // Update word count on text change and run offline transliteration for user input
+    quill.on('text-change', function(delta, oldDelta, source) {
+        // Only respond to user typing (not api inserts)
+        if (source === 'user') {
+            // run transliteration fallback asynchronously
+            runOfflineTransliterationIfNeeded().catch(err => console.warn('Transliteration fallback error:', err));
+        }
         updateWordCount();
     });
     
@@ -370,5 +375,54 @@ document.addEventListener('keydown', function(e) {
         }
     }
 });
+
+// Initialize Google Input Tools Transliteration (polling until API is available)
+function initGoogleTransliteration() {
+    let attempts = 0;
+    const maxAttempts = 30; // ~9 seconds
+    const interval = 300;
+    let attemptedJsapiLoad = false; // try loading 'elements' package one time if possible
+
+    const timer = setInterval(() => {
+        attempts += 1;
+        // If the transliteration runtime is already present, initialize
+        if (window.google && google.elements && google.elements.transliteration) {
+            clearInterval(timer);
+            try {
+                const options = {
+                    sourceLanguage: google.elements.transliteration.LanguageCode.ENGLISH,
+                    destinationLanguage: [google.elements.transliteration.LanguageCode.KANNADA],
+                    transliterationEnabled: true
+                };
+                const control = new google.elements.transliteration.TransliterationControl(options);
+                // Attach to Quill's editable element (id 'editor')
+                control.makeTransliteratable(['editor']);
+                control.setShortcutKey('ctrl+g');
+                console.info('Google Transliteration initialized for Kannada on #editor');
+            } catch (err) {
+                console.warn('Failed to initialize TransliterationControl:', err);
+            }
+        } else if (window.google && typeof google.load === 'function' && !attemptedJsapiLoad) {
+            // Avoid calling deprecated/unsupported modules via google.load; just note availability
+            attemptedJsapiLoad = true;
+            console.info('google.load detected but skipping one-time elements.load to avoid unsupported module errors.');
+        } else if (attempts >= maxAttempts) {
+            clearInterval(timer);
+            console.info('Transliteration API not available after waiting; falling back to offline/server transliteration.');
+        }
+    }, interval);
+}
+
+// Kick off transliteration init after DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    initGoogleTransliteration();
+});
+
+// NOTE: We attempt a one-time jsapi load from inside the polling initializer above
+// to avoid repeatedly calling deprecated/unsupported modules like 'inputtools'.
+// If Google Transliteration is not available in the user's network, you may add a server-side fallback.
+
+// NOTE: duplicate handlers were removed — transliteration is triggered
+// from the safer DOMContentLoaded initialization above where `quill` is defined.
 </script>
 {% endblock %}

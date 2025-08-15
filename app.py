@@ -10,6 +10,7 @@ import tempfile
 from datetime import datetime
 from werkzeug.utils import secure_filename
 import json
+import re
 
 # Import our extraction modules
 try:
@@ -51,6 +52,67 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 def allowed_file(filename):
     """Check if file extension is allowed."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+# Simple server-side phonetic transliteration mapping & helper
+# This mirrors the offline JS map and provides a safe server fallback
+TRANSLIT_MAP = {
+    'a':'ಅ','aa':'ಆ','i':'ಇ','ii':'ಈ','u':'ಉ','uu':'ಊ',
+    'e':'ಎ','ee':'ಏ','ai':'ಐ','o':'ಒ','oo':'ಓ','au':'ಔ',
+    'ka':'ಕ','kha':'ಖ','ga':'ಗ','gha':'ಘ','nga':'ಙ',
+    'cha':'ಚ','chha':'ಛ','ja':'ಜ','jha':'ಝ','nya':'ಞ',
+    'ta':'ತ','tha':'ಥ','da':'ದ','dha':'ಧ','na':'ನ',
+    'pa':'ಪ','pha':'ಫ','ba':'ಬ','bha':'ಭ','ma':'ಮ',
+    'ya':'ಯ','ra':'ರ','la':'ಲ','va':'ವ','sha':'ಶ','ssa':'ಷ','sa':'ಸ','ha':'ಹ',
+    'nga':'ಙ','ksha':'ಕ್ಷ','tra':'ತ್ರ','j~na':'জ্ঞ'
+}
+
+def transliterate_word_python(word: str) -> str:
+    """Greedy longest-match transliteration for a single token (basic phonetic rules)."""
+    if not word:
+        return word
+    w = word.lower()
+    if w in TRANSLIT_MAP:
+        return TRANSLIT_MAP[w]
+    res = ''
+    while w:
+        matched = False
+        # try longest matches first (4 .. 1)
+        for l in range(min(4, len(w)), 0, -1):
+            sub = w[:l]
+            if sub in TRANSLIT_MAP:
+                res += TRANSLIT_MAP[sub]
+                w = w[l:]
+                matched = True
+                break
+        if not matched:
+            # keep original char if no mapping
+            res += w[0]
+            w = w[1:]
+    return res
+
+
+@app.route('/transliterate', methods=['POST'])
+def transliterate():
+    """Simple transliteration endpoint used as a fallback when client-side Google transliteration is unavailable.
+
+    Accepts JSON: { "text": "..." } and returns { "success": true, "result": "..." }
+    The function preserves whitespace separators.
+    """
+    try:
+        data = request.get_json(force=True) or {}
+        text = data.get('text', '')
+        # split on whitespace but keep separators
+        parts = re.split(r'(\s+)', text)
+        out = []
+        for p in parts:
+            if p.strip() == '':
+                out.append(p)
+            else:
+                out.append(transliterate_word_python(p))
+        return jsonify({'success': True, 'result': ''.join(out)})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 def preprocess_image_opencv(image_path, output_dir=None):
@@ -473,6 +535,75 @@ def check_dependencies():
             deps['kannada_available'] = False
     
     return jsonify(deps)
+
+
+def transliterate_greedy(word: str) -> str:
+    """Simple greedy transliteration mapping for English phonetic -> Kannada.
+
+    This mirrors the client-side fallback rules and is intentionally conservative
+    (no external dependencies). It's suitable as a server-side fallback when
+    Google's transliteration API is unavailable.
+    """
+    if not word:
+        return ''
+
+    mapping = {
+        'a':'ಅ','aa':'ಆ','i':'ಇ','ii':'ಈ','u':'ಉ','uu':'ಊ',
+        'e':'ಎ','ee':'ಏ','ai':'ಐ','o':'ಒ','oo':'ಓ','au':'ಔ',
+        'ka':'ಕ','kha':'ಖ','ga':'ಗ','gha':'ಘ','nga':'ಙ',
+        'cha':'ಚ','chha':'ಛ','ja':'ಜ','jha':'ಝ','nya':'ಞ',
+        'ta':'ತ','tha':'ಥ','da':'ದ','dha':'ಧ','na':'ನ',
+        'pa':'ಪ','pha':'ಫ','ba':'ಬ','bha':'ಭ','ma':'ಮ',
+        'ya':'ಯ','ra':'ರ','la':'ಲ','va':'ವ','sha':'ಶ','ssa':'ಷ','sa':'ಸ','ha':'ಹ',
+        'nga':'ಙ','ksha':'ಕ್ಷ','tra':'ತ್ರ','j~na':'জ্ঞ'
+    }
+
+    w = word.lower()
+    # direct map
+    if w in mapping:
+        return mapping[w]
+
+    res = ''
+    while w:
+        matched = False
+        # try longest match first (4..1)
+        for l in range(min(4, len(w)), 0, -1):
+            sub = w[:l]
+            if sub in mapping:
+                res += mapping[sub]
+                w = w[l:]
+                matched = True
+                break
+        if not matched:
+            # emit original char and continue
+            res += w[0]
+            w = w[1:]
+
+    return res
+
+
+@app.route('/transliterate', methods=['POST'])
+def transliterate_route():
+    """Server-side transliteration endpoint used as a fallback.
+
+    Expects JSON: { "text": "word or phrase in latin" }
+    Returns JSON: { "success": true, "result": "Kannada text" }
+    """
+    try:
+        data = request.get_json(force=True)
+        text = data.get('text', '') if isinstance(data, dict) else ''
+        if not text:
+            return jsonify({'success': False, 'error': 'No text provided'}), 400
+
+        # For short single words, use greedy mapping. For longer phrases,
+        # process word-by-word and join with spaces.
+        parts = text.split()
+        out_parts = [transliterate_greedy(p) for p in parts]
+        result = ' '.join(out_parts)
+        return jsonify({'success': True, 'result': result})
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.errorhandler(413)
