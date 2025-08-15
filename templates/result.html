@@ -73,9 +73,7 @@
                 <button class="btn btn-outline-warning" onclick="clearEditor()">
                     <i class="fas fa-eraser"></i> ಸಂಪಾದಕ ತೆರವುಗೊಳಿಸಿ
                 </button>
-                <button class="btn btn-outline-secondary" onclick="toggleFullscreen()">
-                    <i class="fas fa-expand"></i> ಪೂರ್ಣ ಪರದೆ
-                </button>
+                <!-- fullscreen removed -->
             </div>
         </div>
     </div>
@@ -132,28 +130,12 @@
     </div>
 </div>
 
-<!-- Fullscreen Modal -->
-<div class="modal fade" id="fullscreenModal" tabindex="-1">
-    <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-edit"></i> ಪೂರ್ಣ ಪರದೆ ಸಂಪಾದಕ
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-0">
-                <div id="fullscreen-editor" style="height: calc(100vh - 120px);"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-custom" onclick="saveFromFullscreen()">
-                    <i class="fas fa-save"></i> ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ
-                </button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    ಮುಚ್ಚಿ
-                </button>
-            </div>
-        </div>
+<!-- Fullscreen feature removed -->
+
+<!-- Creator credit -->
+<div class="row mt-4">
+    <div class="col-12 text-center">
+        <small>Created by <a href="https://github.com/DarshanCHMSR" target="_blank" rel="noopener noreferrer">DarshanCHMSR</a></small>
     </div>
 </div>
 {% endblock %}
@@ -182,9 +164,7 @@
         border-bottom-right-radius: 8px;
     }
     
-    .fullscreen-editor .ql-editor {
-        min-height: calc(100vh - 200px) !important;
-    }
+    /* fullscreen editor removed */
     
     @media (max-width: 768px) {
         .d-flex.gap-2 {
@@ -201,7 +181,6 @@
 {% block extra_js %}
 <script>
 let quill;
-let fullscreenQuill;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Quill editor
@@ -340,45 +319,7 @@ function clearEditor() {
     }
 }
 
-function toggleFullscreen() {
-    const modal = new bootstrap.Modal(document.getElementById('fullscreenModal'));
-    
-    // Initialize fullscreen editor if not already done
-    if (!fullscreenQuill) {
-        fullscreenQuill = new Quill('#fullscreen-editor', {
-            theme: 'snow',
-            modules: {
-                toolbar: [
-                    [{ 'header': [1, 2, 3, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'align': [] }],
-                    ['link', 'blockquote', 'code-block'],
-                    ['clean']
-                ]
-            }
-        });
-    }
-    
-    // Copy content to fullscreen editor
-    fullscreenQuill.setContents(quill.getContents());
-    
-    modal.show();
-}
-
-function saveFromFullscreen() {
-    // Copy content back to main editor
-    quill.setContents(fullscreenQuill.getContents());
-    updateWordCount();
-    
-    // Close modal
-    const modal = bootstrap.Modal.getInstance(document.getElementById('fullscreenModal'));
-    modal.hide();
-    
-    // Show success message
-    alert('ಬದಲಾವಣೆಗಳು ಮುಖ್ಯ ಸಂಪಾದಕಕ್ಕೆ ಯಶಸ್ವಿಯಾಗಿ ನಕಲಿಸಲ್ಪಟ್ಟಿವೆ!');
-}
+/* Fullscreen removed */
 
 function formatText(format) {
     const selection = quill.getSelection();
@@ -397,10 +338,7 @@ document.addEventListener('keydown', function(e) {
                 e.preventDefault();
                 saveEditedText();
                 break;
-            case 'f':
-                e.preventDefault();
-                toggleFullscreen();
-                break;
+            // fullscreen shortcut removed
         }
     }
 });
