@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Extraction Results - PDF & OCR Text Extractor{% endblock %}
+{% block title %}ಎಕ್ಸ್ಟ್ರ್ಯಾಕ್ಷನ್ ಫಲಿತಾಂಶಗಳು - PDF ಮತ್ತು OCR ಪಠ್ಯ ಎಕ್ಸ್ಟ್ರಾಕ್ಟರ್{% endblock %}
 
 {% block content %}
 <!-- Results Header -->
@@ -9,12 +9,12 @@
         <div class="feature-card">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h4><i class="fas fa-file-text text-success"></i> Extraction Complete!</h4>
-                    <p class="mb-0">File: <strong>{{ filename }}</strong></p>
+                    <h4><i class="fas fa-file-text text-success"></i> ಎಕ್ಸ್ಟ್ರ್ಯಾಕ್ಷನ್ ಸಿದ್ಧವಾಗಿದೆ!</h4>
+                    <p class="mb-0">ಫೈಲ್: <strong>{{ filename }}</strong></p>
                 </div>
                 <div class="text-end">
                     <a href="/" class="btn btn-outline-primary">
-                        <i class="fas fa-plus"></i> Process Another File
+                        <i class="fas fa-plus"></i> ಮತ್ತೊಂದು ಫೈಲ್ ಪ್ರಕ್ರಿಯೆ ಮಾಡಿ
                     </a>
                 </div>
             </div>
@@ -28,28 +28,28 @@
         <div class="feature-card text-center">
             <i class="fas fa-font fa-2x text-primary mb-2"></i>
             <h5>{{ char_count }}</h5>
-            <p class="text-muted mb-0">Characters</p>
+            <p class="text-muted mb-0">ಅಕ್ಷರಗಳು</p>
         </div>
     </div>
     <div class="col-md-3">
         <div class="feature-card text-center">
             <i class="fas fa-spell-check fa-2x text-success mb-2"></i>
             <h5>{{ word_count }}</h5>
-            <p class="text-muted mb-0">Words</p>
+            <p class="text-muted mb-0">ಪದಗಳು</p>
         </div>
     </div>
     <div class="col-md-3">
         <div class="feature-card text-center">
             <i class="fas fa-list-ol fa-2x text-warning mb-2"></i>
             <h5>{{ line_count }}</h5>
-            <p class="text-muted mb-0">Lines</p>
+            <p class="text-muted mb-0">ರೆಖೆಗಳು</p>
         </div>
     </div>
     <div class="col-md-3">
         <div class="feature-card text-center">
             <i class="fas fa-clock fa-2x text-info mb-2"></i>
             <h5 id="readingTime">-</h5>
-            <p class="text-muted mb-0">Min Read</p>
+            <p class="text-muted mb-0">ಓದಲು (ನಿಮಿಷ)</p>
         </div>
     </div>
 </div>
@@ -60,21 +60,21 @@
         <div class="feature-card">
             <div class="d-flex flex-wrap gap-2 justify-content-center">
                 <button class="btn btn-custom" onclick="saveEditedText()">
-                    <i class="fas fa-save"></i> Save Edited Text
+                    <i class="fas fa-save"></i> ಸಂಪಾದಿಸಿದ ಪಠ್ಯ ಉಳಿಸಿ
                 </button>
                 {% if output_file %}
                 <a href="/download/{{ output_file }}" class="btn btn-outline-success">
-                    <i class="fas fa-download"></i> Download Original
+                    <i class="fas fa-download"></i> ಮೂಲವನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ
                 </a>
                 {% endif %}
                 <button class="btn btn-outline-info" onclick="copyToClipboard()">
-                    <i class="fas fa-copy"></i> Copy Text
+                    <i class="fas fa-copy"></i> ಪಠ್ಯ ನಕಲಿಸು
                 </button>
                 <button class="btn btn-outline-warning" onclick="clearEditor()">
-                    <i class="fas fa-eraser"></i> Clear Editor
+                    <i class="fas fa-eraser"></i> ಸಂಪಾದಕ ತೆರವುಗೊಳಿಸಿ
                 </button>
                 <button class="btn btn-outline-secondary" onclick="toggleFullscreen()">
-                    <i class="fas fa-expand"></i> Fullscreen
+                    <i class="fas fa-expand"></i> ಪೂರ್ಣ ಪರದೆ
                 </button>
             </div>
         </div>
@@ -86,7 +86,7 @@
     <div class="col-12">
         <div class="feature-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5><i class="fas fa-edit"></i> Edit Extracted Text</h5>
+                <h5><i class="fas fa-edit"></i> ತೆಗಿದ ಪಠ್ಯವನ್ನು ಸಂಪಾದಿಸಿ</h5>
                 <div class="btn-group btn-group-sm" role="group">
                     <button type="button" class="btn btn-outline-secondary" onclick="formatText('bold')">
                         <i class="fas fa-bold"></i>
@@ -111,11 +111,11 @@
             <div class="mt-3 d-flex justify-content-between align-items-center">
                 <small class="text-muted">
                     <i class="fas fa-info-circle"></i> 
-                    Use the toolbar above to format your text. Changes are automatically tracked.
+                    ಮೇಲಿನ ಟೂಲ್ಬಾರ್‌ನ್ನು ಬಳಸುತ್ತಾ ನಿಮ್ಮ ಪಠ್ಯವನ್ನು ಸ್ವರೂಪಗೊಳಿಸಿ. ಬದಲಾವಣೆಗಳನ್ನು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಟ್ರ್ಯಾಕ್ ಮಾಡಲಾಗುತ್ತದೆ.
                 </small>
                 <div class="text-muted">
-                    <span id="editorWordCount">{{ word_count }}</span> words | 
-                    <span id="editorCharCount">{{ char_count }}</span> characters
+                    <span id="editorWordCount">{{ word_count }}</span> ಪದಗಳು | 
+                    <span id="editorCharCount">{{ char_count }}</span> ಅಕ್ಷರಗಳು
                 </div>
             </div>
         </div>
@@ -127,7 +127,7 @@
     <div class="alert alert-success alert-custom">
         <i class="fas fa-check-circle"></i> <span id="saveMessage"></span>
         <a id="downloadLink" href="#" class="btn btn-sm btn-outline-success ms-2" style="display: none;">
-            <i class="fas fa-download"></i> Download
+            <i class="fas fa-download"></i> ಡೌನ್‌ಲೋಡ್
         </a>
     </div>
 </div>
@@ -138,7 +138,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-edit"></i> Fullscreen Editor
+                    <i class="fas fa-edit"></i> ಪೂರ್ಣ ಪರದೆ ಸಂಪಾದಕ
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -147,10 +147,10 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-custom" onclick="saveFromFullscreen()">
-                    <i class="fas fa-save"></i> Save Changes
+                    <i class="fas fa-save"></i> ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ
                 </button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    Close
+                    ಮುಚ್ಚಿ
                 </button>
             </div>
         </div>
@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 ['clean']
             ]
         },
-        placeholder: 'Start editing your extracted text...'
+        placeholder: 'ತೆಗಿದ ಪಠ್ಯವನ್ನು ಸಂಪಾದನೆ ಪ್ರಾರಂಭಿಸಿ...'
     });
     
     // Update word count on text change
@@ -254,14 +254,14 @@ function saveEditedText() {
     const htmlContent = quill.root.innerHTML;
     
     if (!text.trim()) {
-        alert('Editor is empty. Nothing to save.');
+        alert('ಸಂಪಾದಕ ಖಾಲಿದಾಗಿದೆ. ಉಳಿಸಲು ಏನೂ ಇಲ್ಲ.');
         return;
     }
     
     // Show loading state
     const saveBtn = event.target;
     const originalText = saveBtn.innerHTML;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ಉಳಿಸಲಾಗುತ್ತಿದೆ...';
     saveBtn.disabled = true;
     
     fetch('/save_edited', {
@@ -280,12 +280,12 @@ function saveEditedText() {
         if (data.success) {
             showSaveStatus(data.message, data.filename);
         } else {
-            alert('Error saving file: ' + data.message);
+            alert('ಫೈಲ್ ಉಳಿಸಲು ದೋಷ: ' + data.message);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error saving file. Please try again.');
+            alert('ಫೈಲ್ ಉಳಿಸುವಲ್ಲಿ ದೋಷವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮರುಪ್ರಯತ್ನಿಸಿ.');
     })
     .finally(() => {
         saveBtn.innerHTML = originalText;
@@ -319,7 +319,7 @@ function copyToClipboard() {
         // Show temporary success message
         const btn = event.target;
         const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+    btn.innerHTML = '<i class="fas fa-check"></i> ನಕಲಿಸಲಾಗಿದೆ!';
         btn.classList.add('btn-success');
         btn.classList.remove('btn-outline-info');
         
@@ -328,13 +328,13 @@ function copyToClipboard() {
             btn.classList.remove('btn-success');
             btn.classList.add('btn-outline-info');
         }, 2000);
-    }).catch(err => {
-        alert('Failed to copy text to clipboard');
+            }).catch(err => {
+                alert('ಕ್ಲಿಪ್‌ಬೋರ್ಡಿಗೆ ಪಠ್ಯ ನಕಲಿಸಲು ವಿಫಲವಾಗಿದೆ');
     });
 }
 
 function clearEditor() {
-    if (confirm('Are you sure you want to clear all text? This action cannot be undone.')) {
+    if (confirm('ನೀವು ಎಲ್ಲಾ ಪಠ್ಯವನ್ನು ತೆರವುಗೊಳಿಸುವ ಬಗ್ಗೆ ಖಚಿತವಾ? ಈ ಕಾರ್ಯವನ್ನು ಮರಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.')) {
         quill.setText('');
         updateWordCount();
     }
@@ -377,7 +377,7 @@ function saveFromFullscreen() {
     modal.hide();
     
     // Show success message
-    alert('Changes copied to main editor successfully!');
+    alert('ಬದಲಾವಣೆಗಳು ಮುಖ್ಯ ಸಂಪಾದಕಕ್ಕೆ ಯಶಸ್ವಿಯಾಗಿ ನಕಲಿಸಲ್ಪಟ್ಟಿವೆ!');
 }
 
 function formatText(format) {
@@ -385,7 +385,7 @@ function formatText(format) {
     if (selection) {
         quill.format(format, true);
     } else {
-        alert('Please select text to format');
+    alert('ದಯವಿಟ್ಟು ಸ್ವರೂಪಗೊಳಿಸಲು ಪಠ್ಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ');
     }
 }
 

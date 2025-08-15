@@ -5,26 +5,26 @@
 <div class="row mb-4">
     <div class="col-md-6">
         <div class="feature-card">
-            <h5><i class="fas fa-file-pdf text-danger"></i> PDF Processing</h5>
+            <h5><i class="fas fa-file-pdf text-danger"></i> ಪಿಡಿಎಫ್ ಪ್ರಕ್ರಿಯೆ</h5>
             <span class="status-badge {% if pdf_available %}status-available{% else %}status-unavailable{% endif %}">
-                {% if pdf_available %}✅ Available{% else %}❌ Unavailable{% endif %}
+                {% if pdf_available %}✅ ಲಭ್ಯವಿದೆ{% else %}❌ ಲಭ್ಯವಿಲ್ಲ{% endif %}
             </span>
-            <p class="mt-2 mb-0">Extract text from PDF documents using multiple methods</p>
+            <p class="mt-2 mb-0">ಅನೇಕ ವಿಧಾನಗಳನ್ನು ಬಳಸಿಕೊಂಡು ಪಿಡಿಎಫ್ ದಾಖಲೆಗಳಿಂದ ಪಠ್ಯವನ್ನು ಎಕ್ಸ್ಟ್ರ್ಯಾಕ್ಟ್ ಮಾಡಿ</p>
         </div>
     </div>
     <div class="col-md-6">
         <div class="feature-card">
-            <h5><i class="fas fa-image text-primary"></i> OCR Processing</h5>
+            <h5><i class="fas fa-image text-primary"></i> ಓಸಿಆರ್ ಪ್ರಕ್ರಿಯೆ</h5>
             <span class="status-badge {% if ocr_available %}status-available{% else %}status-unavailable{% endif %}">
-                {% if ocr_available %}✅ Available{% else %}❌ Unavailable{% endif %}
+                {% if ocr_available %}✅ ಲಭ್ಯವಿದೆ{% else %}❌ ಲಭ್ಯವಿಲ್ಲ{% endif %}
             </span>
             <div class="mt-2">
                 <small class="text-muted">
-                    <i class="fas fa-eye"></i> Standard OCR: {% if ocr_available %}✅{% else %}❌{% endif %}<br>
-                    <i class="fas fa-shapes"></i> OpenCV Processing: <span id="opencv-status">Checking...</span>
+                    <i class="fas fa-eye"></i> ಸಾಮಾನ್ಯ ಓಸಿಆರ್: {% if ocr_available %}✅{% else %}❌{% endif %}<br>
+                    <i class="fas fa-shapes"></i> OpenCV ಪ್ರಕ್ರಿಯೆ: <span id="opencv-status">ಪರಿಶೀಲಿಸುತ್ತಿದೆ...</span>
                 </small>
             </div>
-            <p class="mt-2 mb-0">Extract text from images with Kannada language support</p>
+            <p class="mt-2 mb-0">ಕನ್ನಡ ಭಾಷೆಯ ಬೆಂಬಲದೊಂದಿಗೆ ಚಿತ್ರಗಳಿಂದ ಪಠ್ಯವನ್ನು ಎಕ್ಸ್ಟ್ರ್ಯಾಕ್ಟ್ ಮಾಡಿ</p>
         </div>
     </div>
 </div>
@@ -38,13 +38,13 @@
         <div class="upload-icon">
             <i class="fas fa-cloud-upload-alt"></i>
         </div>
-        <h4>Drop files here or click to browse</h4>
-        <p class="text-muted">Supported formats: PDF, PNG, JPG, JPEG, GIF, BMP, TIFF</p>
-        <p class="text-muted">Maximum file size: 16MB</p>
+        <h4>ಫೈಲ್‌ಗಳನ್ನು ಇಲ್ಲಿ ಬಿಡಿ ಅಥವಾ ಬ್ರೌಸ್ ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ</h4>
+        <p class="text-muted">ಬೆಂಬಲಿತ ಫಾರ್ಮ್ಯಾಟ್‌ಗಳು: PDF, PNG, JPG, JPEG, GIF, BMP, TIFF</p>
+        <p class="text-muted">ಗರಿಷ್ಠ ಫೈಲ್ ಗಾತ್ರ: 16MB</p>
 
         <div class="mt-3">
             <button type="button" class="btn btn-custom" onclick="document.getElementById('fileInput').click()">
-                <i class="fas fa-folder-open"></i> Choose File
+                <i class="fas fa-folder-open"></i> ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ
             </button>
         </div>
     </div>
@@ -61,36 +61,36 @@
     <div class="row mt-4">
         <div class="col-md-6">
             <div class="feature-card">
-                <h6><i class="fas fa-file-pdf"></i> PDF Options</h6>
+                <h6><i class="fas fa-file-pdf"></i> ಪಿಡಿಎಫ್ ಆಯ್ಕೆಗಳು</h6>
                 <div class="form-group">
-                    <label for="method" class="form-label">Extraction Method:</label>
+                    <label for="method" class="form-label">ಎಕ್ಸ್ಟ್ರ್ಯಾಕ್ಷನ್ ವಿಧಾನ:</label>
                     <select class="form-select" id="method" name="method">
-                        <option value="auto">Auto (Recommended)</option>
-                        <option value="pdfplumber">PDFplumber (Complex layouts)</option>
-                        <option value="pypdf2">PyPDF2 (Fast)</option>
-                        <option value="ocr">OCR (Image-based PDFs)</option>
+                        <option value="auto">ಸ್ವಯಂಚಾಲಿತ (ಶಿಫಾರಸು)</option>
+                        <option value="pdfplumber">PDFplumber (ಸಂಕೀರ್ಣ ಲೇಔಟ್‌ಗಳು)</option>
+                        <option value="pypdf2">PyPDF2 (ವೇಗವಾದ)</option>
+                        <option value="ocr">ಓಸಿಆರ್ (ಚಿತ್ರ-ಆಧಾರಿತ ಪಿಡಿಎಫ್‌ಗಳು)</option>
                     </select>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="feature-card">
-                <h6><i class="fas fa-image"></i> Image Options</h6>
+                <h6><i class="fas fa-image"></i> ಚಿತ್ರ ಆಯ್ಕೆಗಳು</h6>
                 <div class="form-check mb-2">
                     <input class="form-check-input" type="checkbox" id="preprocess" name="preprocess" value="true" checked>
                     <label class="form-check-label" for="preprocess">
-                        Enable image preprocessing
+                        ಚಿತ್ರ ಪೂರ್ವ ಪ್ರಕ್ರಿಯೆಯನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ
                     </label>
                 </div>
                 <div class="form-check mb-2">
                     <input class="form-check-input" type="checkbox" id="use_opencv" name="use_opencv" value="true" checked>
                     <label class="form-check-label" for="use_opencv">
-                        Use OpenCV advanced processing
+                        OpenCV ಸುಧಾರಿತ ಪ್ರಕ್ರಿಯೆಯನ್ನು ಬಳಸಿ
                     </label>
                 </div>
                 <small class="text-muted">
-                    <strong>Standard:</strong> Grayscale + contrast enhancement<br>
-                    <strong>OpenCV:</strong> Contour detection + region-based OCR
+                    <strong>ಸಾಮಾನ್ಯ:</strong> ಗ್ರೇಸ್ಕೇಲ್ + ಕಾಂಟ್ರಾಸ್ಟ್ ವರ್ಧನೆ<br>
+                    <strong>OpenCV:</strong> ಕಾಂಟೂರ್ ಪತ್ತೆ + ಪ್ರದೇಶ-ಆಧಾರಿತ ಓಸಿಆರ್
                 </small>
             </div>
         </div>
@@ -99,7 +99,7 @@
     <!-- Submit Button -->
     <div class="text-center mt-4">
         <button type="submit" class="btn btn-custom btn-lg" id="submitBtn" disabled>
-            <i class="fas fa-magic"></i> Extract Text
+            <i class="fas fa-magic"></i> ಪಠ್ಯ ಎಕ್ಸ್ಟ್ರ್ಯಾಕ್ಟ್ ಮಾಡಿ
         </button>
     </div>
     
@@ -109,7 +109,7 @@
             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
         </div>
         <p class="text-center mt-2">
-            <i class="fas fa-spinner fa-spin"></i> Processing your file...
+            <i class="fas fa-spinner fa-spin"></i> ನಿಮ್ಮ ಫೈಲ್ ಅನ್ನು ಪ್ರಕ್ರಿಯೆಗೊಳಿಸುತ್ತಿದೆ...
         </p>
     </div>
 </form>
@@ -117,27 +117,27 @@
 <!-- Features Section -->
 <div class="row mt-5">
     <div class="col-12">
-        <h4 class="text-center mb-4">Features</h4>
+        <h4 class="text-center mb-4">ವೈಶಿಷ್ಟ್ಯಗಳು</h4>
     </div>
     <div class="col-md-4">
         <div class="feature-card text-center">
             <i class="fas fa-language fa-2x text-primary mb-3"></i>
-            <h6>Multi-language Support</h6>
-            <p class="text-muted">Specialized Kannada OCR with support for mixed content</p>
+            <h6>ಬಹು-ಭಾಷಾ ಬೆಂಬಲ</h6>
+            <p class="text-muted">ಮಿಶ್ರ ವಿಷಯಕ್ಕೆ ಬೆಂಬಲದೊಂದಿಗೆ ವಿಶೇಷ ಕನ್ನಡ ಓಸಿಆರ್</p>
         </div>
     </div>
     <div class="col-md-4">
         <div class="feature-card text-center">
             <i class="fas fa-edit fa-2x text-success mb-3"></i>
-            <h6>Rich Text Editor</h6>
-            <p class="text-muted">Edit extracted text with Quill.js rich text editor</p>
+            <h6>ರಿಚ್ ಟೆಕ್ಸ್ಟ್ ಎಡಿಟರ್</h6>
+            <p class="text-muted">Quill.js ರಿಚ್ ಟೆಕ್ಸ್ಟ್ ಎಡಿಟರ್‌ನೊಂದಿಗೆ ಎಕ್ಸ್ಟ್ರ್ಯಾಕ್ಟ್ ಮಾಡಿದ ಪಠ್ಯವನ್ನು ಸಂಪಾದಿಸಿ</p>
         </div>
     </div>
     <div class="col-md-4">
         <div class="feature-card text-center">
             <i class="fas fa-download fa-2x text-warning mb-3"></i>
-            <h6>Export Options</h6>
-            <p class="text-muted">Save edited text as formatted documents</p>
+            <h6>ರಫ್ತು ಆಯ್ಕೆಗಳು</h6>
+            <p class="text-muted">ಸಂಪಾದಿತ ಪಠ್ಯವನ್ನು ಫಾರ್ಮ್ಯಾಟ್ ಮಾಡಿದ ದಾಖಲೆಗಳಾಗಿ ಉಳಿಸಿ</p>
         </div>
     </div>
 </div>
@@ -206,12 +206,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="upload-icon text-success">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <h5 class="text-success">File Selected!</h5>
-                <p class="text-muted">File: ${file.name}</p>
-                <p class="text-muted">Size: ${formatFileSize(file.size)}</p>
-                <p class="text-muted">Click "Extract Text" to process your file</p>
+                <h5 class="text-success">ಫೈಲ್ ಆಯ್ಕೆಯಾಗಿದೆ!</h5>
+                <p class="text-muted">ಫೈಲ್: ${file.name}</p>
+                <p class="text-muted">ಗಾತ್ರ: ${formatFileSize(file.size)}</p>
+                <p class="text-muted">ನಿಮ್ಮ ಫೈಲ್ ಅನ್ನು ಪ್ರಕ್ರಿಯೆಗೊಳಿಸಲು "ಪಠ್ಯ ಎಕ್ಸ್ಟ್ರ್ಯಾಕ್ಟ್ ಮಾಡಿ" ಕ್ಲಿಕ್ ಮಾಡಿ</p>
                 <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearFile()">
-                    <i class="fas fa-times"></i> Clear
+                    <i class="fas fa-times"></i> ತೆರವುಗೊಳಿಸಿ
                 </button>
             `;
 
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!currentFileInput || !currentFileInput.files || currentFileInput.files.length === 0) {
             e.preventDefault();
             console.log('No file selected, preventing form submission');
-            alert('Please select a file first!');
+            alert('ದಯವಿಟ್ಟು ಮೊದಲು ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ!');
             return false;
         }
 
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!selectedFile || !selectedFile.name) {
             e.preventDefault();
             console.log('Invalid file selected');
-            alert('Please select a valid file!');
+            alert('ದಯವಿಟ್ಟು ಮಾನ್ಯವಾದ ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ!');
             return false;
         }
 
@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Show progress
         progressContainer.style.display = 'block';
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ಪ್ರಕ್ರಿಯೆಗೊಳಿಸುತ್ತಿದೆ...';
 
         // Simulate progress (since we can't track actual upload progress easily)
         let progress = 0;
@@ -328,20 +328,20 @@ function clearFile() {
     fileInput.value = '';
     fileInfo.style.display = 'none';
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-magic"></i> Extract Text';
+    submitBtn.innerHTML = '<i class="fas fa-magic"></i> ಪಠ್ಯ ಎಕ್ಸ್ಟ್ರ್ಯಾಕ್ಟ್ ಮಾಡಿ';
 
     // Reset upload area (without recreating file input)
     uploadArea.innerHTML = `
         <div class="upload-icon">
             <i class="fas fa-cloud-upload-alt"></i>
         </div>
-        <h4>Drop files here or click to browse</h4>
-        <p class="text-muted">Supported formats: PDF, PNG, JPG, JPEG, GIF, BMP, TIFF</p>
-        <p class="text-muted">Maximum file size: 16MB</p>
+        <h4>ಫೈಲ್‌ಗಳನ್ನು ಇಲ್ಲಿ ಬಿಡಿ ಅಥವಾ ಬ್ರೌಸ್ ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ</h4>
+        <p class="text-muted">ಬೆಂಬಲಿತ ಫಾರ್ಮ್ಯಾಟ್‌ಗಳು: PDF, PNG, JPG, JPEG, GIF, BMP, TIFF</p>
+        <p class="text-muted">ಗರಿಷ್ಠ ಫೈಲ್ ಗಾತ್ರ: 16MB</p>
 
         <div class="mt-3">
             <button type="button" class="btn btn-custom" onclick="document.getElementById('fileInput').click()">
-                <i class="fas fa-folder-open"></i> Choose File
+                <i class="fas fa-folder-open"></i> ಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ
             </button>
         </div>
     `;
