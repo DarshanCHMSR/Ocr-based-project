@@ -59,7 +59,7 @@
     <div class="col-12">
         <div class="feature-card">
             <div class="d-flex flex-wrap gap-2 justify-content-center">
-                <button class="btn btn-custom" onclick="saveEditedText()">
+                <button class="btn btn-custom" onclick="saveEditedText(event)">
                     <i class="fas fa-save"></i> ಸಂಪಾದಿಸಿದ ಪಠ್ಯ ಉಳಿಸಿ
                 </button>
                 {% if output_file %}
@@ -67,7 +67,7 @@
                     <i class="fas fa-download"></i> ಮೂಲವನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ
                 </a>
                 {% endif %}
-                <button class="btn btn-outline-info" onclick="copyToClipboard()">
+                <button class="btn btn-outline-info" onclick="copyToClipboard(event)">
                     <i class="fas fa-copy"></i> ಪಠ್ಯ ನಕಲಿಸು
                 </button>
                 <button class="btn btn-outline-warning" onclick="clearEditor()">
@@ -100,7 +100,7 @@
             
             <!-- Quill Editor Container -->
             <div id="editor-container">
-                <div id="editor" style="min-height: 400px;">
+                <div id="editor" class="editor" style="min-height: 400px;">
                     {{ text|safe }}
                 </div>
             </div>
@@ -143,9 +143,14 @@
 {% block extra_css %}
 <style>
     .ql-editor {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-family: 'Noto Sans Kannada',;
         font-size: 16px;
         line-height: 1.6;
+    }
+
+    /* Explicit editor class to ensure Kannada-friendly font */
+    .editor {
+        font-family: 'Noto Sans Kannada', sans-serif;
     }
     
     .ql-toolbar.ql-snow {
@@ -205,6 +210,14 @@ document.addEventListener('DOMContentLoaded', function() {
         updateWordCount();
     });
     
+    // Ensure editor is enabled and focused for editing
+    try {
+        quill.enable(true);
+        quill.focus();
+    } catch (e) {
+        console.warn('Quill focus/enable failed:', e);
+    }
+    
     // Calculate reading time
     calculateReadingTime();
     
@@ -228,7 +241,7 @@ function calculateReadingTime() {
     document.getElementById('readingTime').textContent = readingTime;
 }
 
-function saveEditedText() {
+function saveEditedText(evt) {
     const text = quill.getText();
     const htmlContent = quill.root.innerHTML;
     
@@ -237,11 +250,19 @@ function saveEditedText() {
         return;
     }
     
-    // Show loading state
-    const saveBtn = event.target;
-    const originalText = saveBtn.innerHTML;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ಉಳಿಸಲಾಗುತ್ತಿದೆ...';
-    saveBtn.disabled = true;
+    // Show loading state (guard event)
+    let saveBtn = null;
+    let originalText = null;
+    if (evt && evt.target) {
+        saveBtn = evt.target;
+        // If the button contains inner elements (icon), climb to button
+        if (saveBtn.tagName !== 'BUTTON') saveBtn = saveBtn.closest('button') || saveBtn;
+        if (saveBtn) {
+            originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ಉಳಿಸಲಾಗುತ್ತಿದೆ...';
+            saveBtn.disabled = true;
+        }
+    }
     
     fetch('/save_edited', {
         method: 'POST',
@@ -267,8 +288,10 @@ function saveEditedText() {
             alert('ಫೈಲ್ ಉಳಿಸುವಲ್ಲಿ ದೋಷವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮರುಪ್ರಯತ್ನಿಸಿ.');
     })
     .finally(() => {
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
+        if (saveBtn) {
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+        }
     });
 }
 
@@ -292,23 +315,28 @@ function showSaveStatus(message, filename) {
     }, 5000);
 }
 
-function copyToClipboard() {
+function copyToClipboard(evt) {
     const text = quill.getText();
     navigator.clipboard.writeText(text).then(() => {
         // Show temporary success message
-        const btn = event.target;
-        const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-check"></i> ನಕಲಿಸಲಾಗಿದೆ!';
-        btn.classList.add('btn-success');
-        btn.classList.remove('btn-outline-info');
-        
-        setTimeout(() => {
-            btn.innerHTML = originalText;
-            btn.classList.remove('btn-success');
-            btn.classList.add('btn-outline-info');
-        }, 2000);
-            }).catch(err => {
-                alert('ಕ್ಲಿಪ್‌ಬೋರ್ಡಿಗೆ ಪಠ್ಯ ನಕಲಿಸಲು ವಿಫಲವಾಗಿದೆ');
+        if (evt && evt.target) {
+            let btn = evt.target;
+            if (btn.tagName !== 'BUTTON') btn = btn.closest('button') || btn;
+            if (btn) {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> ನಕಲಿಸಲಾಗಿದೆ!';
+                btn.classList.add('btn-success');
+                btn.classList.remove('btn-outline-info');
+
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-info');
+                }, 2000);
+            }
+        }
+    }).catch(err => {
+        alert('ಕ್ಲಿಪ್‌ಬೋರ್ಡಿಗೆ ಪಠ್ಯ ನಕಲಿಸಲು ವಿಫಲವಾಗಿದೆ');
     });
 }
 
