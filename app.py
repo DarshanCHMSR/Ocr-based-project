@@ -35,6 +35,16 @@ except ImportError as e:
     OPENCV_AVAILABLE = False
     print(f"❌ OCR/OpenCV processing not available: {e}")
 
+# Server-side transliteration support (using indic-transliteration)
+try:
+    from indic_transliteration import sanscript
+    from indic_transliteration.sanscript import transliterate as sanscript_transliterate
+    TRANSLIT_AVAILABLE = True
+    print("✅ indic-transliteration available (server-side transliteration enabled)")
+except Exception as e:
+    TRANSLIT_AVAILABLE = False
+    print(f"⚠️ indic-transliteration not available: {e}")
+
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this'  # Change this in production
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -478,6 +488,32 @@ def check_dependencies():
             deps['kannada_available'] = False
     
     return jsonify(deps)
+
+
+@app.route('/transliterate', methods=['POST'])
+def transliterate_text():
+    """Server-side transliteration endpoint.
+
+    Expects JSON: { "text": "...", "source": "iast|itrans|hk|...", "target": "kn|devanagari|..." }
+    Returns JSON: { "success": True, "result": "..." }
+    """
+    if not TRANSLIT_AVAILABLE:
+        return jsonify({'success': False, 'error': 'Transliteration not available on server'}), 503
+
+    try:
+        data = request.get_json() or {}
+        text = data.get('text', '')
+        source = data.get('source', 'ITRANS')
+        target = data.get('target', 'KANNADA')
+
+        # Normalize scheme names to Sanscript constants if provided as strings
+        src_const = getattr(sanscript, source.upper(), source)
+        tgt_const = getattr(sanscript, target.upper(), target)
+
+        result = sanscript_transliterate(text, src_const, tgt_const)
+        return jsonify({'success': True, 'result': result})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 # Transliteration features removed from server-side. If needed, re-add an

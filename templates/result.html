@@ -185,6 +185,10 @@
 
 {% block extra_js %}
 <script>
+// NOTE: This file attempts to dynamically import @ai4bharat/indic-transliterate from unpkg CDN
+// using an ESM import. If you serve static assets or bundle your app, ensure the
+// package is available (e.g., copy the built ESM to /static/ and update the import URL).
+
 let quill;
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -205,12 +209,12 @@ document.addEventListener('DOMContentLoaded', function() {
         placeholder: 'ತೆಗಿದ ಪಠ್ಯವನ್ನು ಸಂಪಾದನೆ ಪ್ರಾರಂಭಿಸಿ...'
     });
     
-    // Update word count on text change and run offline transliteration for user input
+    // Update word count on text change and run Indic transliteration (if available)
     quill.on('text-change', function(delta, oldDelta, source) {
         // Only respond to user typing (not api inserts)
         if (source === 'user') {
-            // run transliteration fallback asynchronously
-            runOfflineTransliterationIfNeeded().catch(err => console.warn('Transliteration fallback error:', err));
+            // run transliteration asynchronously (non-blocking)
+            runIndicTransliterationIfAvailable().catch(err => console.warn('Indic transliteration error:', err));
         }
         updateWordCount();
     });
@@ -237,6 +241,118 @@ function updateWordCount() {
     
     document.getElementById('editorWordCount').textContent = wordCount;
     document.getElementById('editorCharCount').textContent = charCount;
+}
+
+// Indic transliteration helper using @ai4bharat/indic-transliterate
+// Prefer the named export `IndicTransliterate` as requested.
+let IndicTransliterateSymbol = null;
+async function ensureIndicLibrary() {
+    if (IndicTransliterateSymbol) return IndicTransliterateSymbol;
+    // 1. Try local static ESM build
+    const local = '/static/js/indic-transliterate.esm.js';
+    try {
+        const mod = await import(local).catch(() => null);
+        if (mod) {
+            IndicTransliterateSymbol = mod.IndicTransliterate || (mod.default && mod.default.IndicTransliterate) || mod.default || mod;
+            return IndicTransliterateSymbol;
+        }
+    } catch (e) {
+        console.warn('Local static import failed:', e);
+    }
+    // 2. Try CDN
+    const cdn = 'https://unpkg.com/@ai4bharat/indic-transliterate?module';
+    try {
+        const mod = await import(cdn).catch(() => null);
+        if (mod) {
+            IndicTransliterateSymbol = mod.IndicTransliterate || (mod.default && mod.default.IndicTransliterate) || mod.default || mod;
+            return IndicTransliterateSymbol;
+        }
+    } catch (e) {
+        console.warn('CDN import failed:', e);
+    }
+    // 3. Try package name (for dev/bundler environments)
+    try {
+        const pkg = await import('@ai4bharat/indic-transliterate');
+        IndicTransliterateSymbol = pkg.IndicTransliterate || (pkg.default && pkg.default.IndicTransliterate) || pkg.default || pkg;
+        return IndicTransliterateSymbol;
+    } catch (e) {
+        console.warn('Package import failed:', e);
+        return null;
+    }
+}
+
+async function runIndicTransliterationIfAvailable() {
+    try {
+        const selection = quill.getSelection(true);
+        if (!selection) return;
+        const [leaf, offset] = quill.getLeaf(selection.index - 1);
+        if (!leaf) return;
+        const textNode = leaf.text || '';
+        const match = textNode.slice(0, offset).match(/(\S+)$/);
+        if (!match) return;
+        const word = match[0];
+
+        const Sym = await ensureIndicLibrary();
+        if (!Sym) {
+            // Try server-side transliteration as a fallback
+            try {
+                const resp = await fetch('/transliterate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: word, source: 'ITRANS', target: 'KANNADA' })
+                });
+                const j = await resp.json();
+                if (j && j.success && j.result && j.result !== word) {
+                    applyTransliterated(selection, word, j.result);
+                }
+            } catch (e) {
+                console.warn('Server transliteration failed:', e);
+            }
+            return;
+        } // library available
+
+        try {
+            // Preferred usage: named export class/function IndicTransliterate
+            if (typeof Sym === 'function') {
+                // Try constructing
+                try {
+                    const inst = new Sym({ source: 'eng', target: 'kn' });
+                    // common method names
+                    if (typeof inst.transliterate === 'function') {
+                        const out = inst.transliterate(word);
+                        if (out && out !== word) { applyTransliterated(selection, word, out); return; }
+                    }
+                    if (typeof inst.transform === 'function') {
+                        const out = inst.transform(word);
+                        if (out && out !== word) { applyTransliterated(selection, word, out); return; }
+                    }
+                } catch (e) {
+                    // If not constructible, try function form
+                    try {
+                        const out = Sym(word, 'kn');
+                        if (out && out !== word) { applyTransliterated(selection, word, out); return; }
+                    } catch (ee) {
+                        console.warn('IndicTransliterate call failed:', ee);
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('Indic transliteration invocation failed:', e);
+        }
+    } catch (e) {
+        console.warn('runIndicTransliterationIfAvailable error:', e);
+    }
+}
+
+function applyTransliterated(selection, originalWord, transliterated) {
+    try {
+        const startIndex = selection.index - originalWord.length;
+        quill.deleteText(startIndex, originalWord.length, 'api');
+        quill.insertText(startIndex, transliterated, 'user');
+        quill.setSelection(startIndex + transliterated.length, 0, 'silent');
+    } catch (e) {
+        console.warn('applyTransliterated failed:', e);
+    }
 }
 
 function calculateReadingTime() {
